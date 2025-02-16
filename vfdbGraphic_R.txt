@@ -1,0 +1,50 @@
+#Installation of the required libraries - First time only
+install.packages("ggplot2")  #for creating plots
+install.packages("dplyr")    #for data manipulation
+install.packages("reshape2") #for transforming data (wide to long format)
+
+#loading the required libraries
+library(ggplot2)  #plotting
+library(dplyr)    #data manipulation
+library(reshape2) #data transformation
+
+#Reading the CSV file
+#Assuming the CSV file has column names in the first row and lineage names in the first column
+data_df <- read.csv("latest_spreadsheet.csv", row.names = 1, check.names = FALSE)
+
+#add a column with lineage names (using the row names of the data frame)
+data_df$Lineage <- rownames(data_df)
+
+#transforming the data to long format (from wide to long)
+molten <- melt(data_df, id.vars = "Lineage", variable.name = "Year", value.name = "Value")
+
+#filtering only the rows where the value is 1 (indicating the presence of a virulence factor)
+molten <- molten %>%
+  filter(Value == 1)
+
+#creating a horizontal bar plot with customized colors
+ggplot(molten, aes(x = Year, fill = Lineage)) +  #set the X-axis as Year and use Lineage for the fill color
+  geom_bar(position = "stack") +                #create a stacked bar plot
+  labs(
+    x = "Corynebacterium striatum",             #label for the X-axis
+    y = "Number of virulence factors",          #label for the Y-axis
+    fill = "Virulence factors"                  #legend title
+  ) +
+  theme_minimal() +                             #apply a clean theme to the plot
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1) #rotate the X-axis labels for better readability
+  ) +
+  coord_flip() +                                #flip the axes to create horizontal bars
+  ylim(0, 30) +                                 #set the Y-axis limits (horizontal after coord_flip)
+  scale_fill_manual(values = c(                 #define specific colors for each virulence factor
+    "ctpV" = "#1f77b4", "dtxR" = "yellow", "fagA" = "lightblue",
+    "fagB" = "#d62728", "fagC" = "purple", "fagD" = "#304848",
+    "hmuT" = "#e377c2", "hmuU" = "#7f7f7f", "hmuV" = "#e88471",
+    "irp6A" = "#17becf", "irp6B" = "lightgreen", "irp6C" = "#d0587e",
+    "lysA" = "#2ca02c", "mpa" = "pink", "pafA" = "#e9e29c",
+    "ptpA" = "#8c564b", "secA2" = "darkred", "senX3" = "#ca562c",
+    "sigA/rpoV" = "#bcdb22", "sigD" = "orange", "spaD" = "#1f7",
+    "spaE" = "#ff7f0e", "spaF" = "blue", "spaH" = "#d62",
+    "srtB" = "#9467bd", "srtC" = "black", "srtD" = "#e37",
+    "srtE" = "#7f7f7f", "sugC" = "#798234"
+  ))
